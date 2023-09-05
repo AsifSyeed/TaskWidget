@@ -65,8 +65,6 @@ struct TaskWidgetAppEntryView : View {
                                     .strikethrough(task.isCompleted, pattern: .solid, color: .primary)
                             })
                             
-                            Spacer()
-                            
                             Button(intent: DeleteTaskIntent(id: task.id)) {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
