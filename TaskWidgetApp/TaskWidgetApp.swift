@@ -7,6 +7,7 @@
 
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> TaskEntry {
@@ -37,9 +38,50 @@ struct TaskWidgetAppEntryView : View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Task's")
-                .fontWeight(.bold)
+            HStack {
+                Text("Task's")
+                    .fontWeight(.semibold)
+            }
+            
+            VStack(alignment: .leading, spacing: 6, content: {
+                if entry.lastThreeTasks.isEmpty {
+                    Text("No new task")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ForEach(entry.lastThreeTasks.sorted {
+                        !$0.isCompleted && $1.isCompleted
+                    }) { task in
+                        HStack(spacing: 6) {
+                            Button(intent: ToggleStateIntent(id: task.id)) {
+                                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                                    .frame(width: 5, height: 5)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4, content: {
+                                Text(task.taskTitle)
+                                    .lineLimit(1)
+                                    .strikethrough(task.isCompleted, pattern: .solid, color: .primary)
+                            })
+                            
+                            Spacer()
+                            
+                            Button(intent: DeleteTaskIntent(id: task.id)) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        
+                        if task.id != entry.lastThreeTasks.last?.id {
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+            })
         }
+        .padding(10)
+        .containerBackground(.fill.tertiary, for: .widget)
     }
 }
 
@@ -57,7 +99,7 @@ struct TaskWidgetApp: Widget {
 
 struct TaskWidgetApp_Previews: PreviewProvider {
     static var previews: some View {
-        TaskWidgetAppEntryView(entry: TaskEntry(lastThreeTasks: []))
+        TaskWidgetAppEntryView(entry: TaskEntry(lastThreeTasks: TaskDataModel.shared.tasks))
             .previewContext(WidgetPreviewContext(family: .systemSmall))
     }
 }
